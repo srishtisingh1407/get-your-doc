@@ -1,9 +1,20 @@
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { specialtiesList } from "../utils/filterUtils";
 
 export default function FiltersPanel() {
   const router = useRouter();
   const query = router.query;
+
+  const [specialtySearch, setSpecialtySearch] = useState("");
+  const [filteredSpecialties, setFilteredSpecialties] = useState(specialtiesList);
+
+  useEffect(() => {
+    const filtered = specialtiesList.filter((spec) =>
+      spec.toLowerCase().includes(specialtySearch.toLowerCase())
+    );
+    setFilteredSpecialties(filtered);
+  }, [specialtySearch]);
 
   const handleModeChange = (e) => {
     router.push({
@@ -35,78 +46,80 @@ export default function FiltersPanel() {
   };
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {/* Mode Card */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="font-bold text-lg mb-4 text-blue-700">Mode of Consultation</h3>
-        <div className="flex flex-col gap-2">
-          <label className="text-sm">
-            <input
-              type="radio"
-              value="video"
-              checked={query.mode === "video"}
-              onChange={handleModeChange}
-              className="mr-2"
-            />
-            Video Consultation
-          </label>
-          <label className="text-sm">
-            <input
-              type="radio"
-              value="clinic"
-              checked={query.mode === "clinic"}
-              onChange={handleModeChange}
-              className="mr-2"
-            />
-            In-clinic Consultation
-          </label>
-        </div>
+    <div className="p-4 bg-blue-50 shadow rounded">
+      <h3 data-testid="filter-header-moc" className="font-bold mb-2">Mode of Consultation</h3>
+      <div className="mb-4">
+        <label>
+          <input
+            data-testid="filter-video-consult"
+            type="radio"
+            value="video"
+            checked={query.mode === "video"}
+            onChange={handleModeChange}
+          />
+          Video Consultation
+        </label>
+        <br />
+        <label>
+          <input
+            data-testid="filter-in-clinic"
+            type="radio"
+            value="clinic"
+            checked={query.mode === "clinic"}
+            onChange={handleModeChange}
+          />
+          In-clinic Consultation
+        </label>
       </div>
 
-      {/* Specialities Card */}
-      <div className="bg-white p-6 rounded-lg shadow-md max-h-[300px] overflow-y-auto">
-        <h3 className="font-bold text-lg mb-4 text-green-700">Specialities</h3>
-        <div className="flex flex-col gap-2">
-          {specialtiesList.map((spec) => (
-            <label key={spec} className="text-sm">
+      <h3 data-testid="filter-header-speciality" className="font-bold mb-2">Specialities</h3>
+      <input
+        type="text"
+        placeholder="Search specialties..."
+        value={specialtySearch}
+        onChange={(e) => setSpecialtySearch(e.target.value)}
+        className="mb-2 p-2 w-full border rounded"
+      />
+      <div className="max-h-60 overflow-y-auto pr-1">
+        {filteredSpecialties.map((spec) => (
+          <div key={spec}>
+            <label>
               <input
                 type="checkbox"
                 value={spec}
+                data-testid={`filter-specialty-${spec.replace(/\//g, "-")}`}
                 checked={query.specialties?.split(",").includes(spec)}
                 onChange={handleSpecialtyChange}
-                className="mr-2"
               />
               {spec}
             </label>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
 
-      {/* Sort Card */}
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <h3 className="font-bold text-lg mb-4 text-purple-700">Sort</h3>
-        <div className="flex flex-col gap-2">
-          <label className="text-sm">
-            <input
-              type="radio"
-              value="fees"
-              checked={query.sort === "fees"}
-              onChange={handleSortChange}
-              className="mr-2"
-            />
-            Price: Low to High
-          </label>
-          <label className="text-sm">
-            <input
-              type="radio"
-              value="experience"
-              checked={query.sort === "experience"}
-              onChange={handleSortChange}
-              className="mr-2"
-            />
-            Experience: High to Low
-          </label>
-        </div>
+      <h3 data-testid="filter-header-sort" className="font-bold mt-4 mb-2">Sort</h3>
+      <div>
+        <label>
+          <input
+            data-testid="sort-fees"
+            type="radio"
+            value="fees"
+            checked={query.sort === "fees"}
+            onChange={handleSortChange}
+          />
+          Price Low-High
+        </label>
+        <br />
+        <label>
+          <input
+            data-testid="sort-experience"
+            type="radio"
+            value="experience"
+            checked={query.sort === "experience"}
+            onChange={handleSortChange}
+          />
+          Experience High-Low
+        </label>
       </div>
     </div>
   );
