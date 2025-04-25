@@ -15,23 +15,32 @@ export const specialtiesList = [
       );
     }
   
-    if (query.mode) {
-      filtered = filtered.filter((d) =>
-        query.mode === "video" ? d.videoConsult : d.inClinicConsult
-      );
+    if (query.mode === "video") {
+      filtered = filtered.filter((d) => d.video_consult);
+    } else if (query.mode === "clinic") {
+      filtered = filtered.filter((d) => d.in_clinic);
     }
   
     if (query.specialties) {
       const selected = query.specialties.split(",");
       filtered = filtered.filter((d) =>
-        d.specialities.some((spec) => selected.includes(spec.name))
+        d.specialities?.some((spec) => selected.includes(spec.name))
       );
     }
   
+
     if (query.sort === "fees") {
-      filtered.sort((a, b) => a.fees - b.fees);
+      filtered.sort((a, b) =>
+        parseInt(a.fees.replace(/[^\d]/g, '')) - parseInt(b.fees.replace(/[^\d]/g, ''))
+      );
     } else if (query.sort === "experience") {
-      filtered.sort((a, b) => b.experience - a.experience);
+      filtered.sort((a, b) => {
+        const getYears = (exp) => {
+          const match = exp.match(/\d+/);
+          return match ? parseInt(match[0]) : 0;
+        };
+        return getYears(b.experience) - getYears(a.experience);
+      });
     }
   
     return filtered;
