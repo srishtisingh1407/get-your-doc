@@ -1,64 +1,37 @@
-import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import { useState } from "react";
+import { FiSearch } from "react-icons/fi"; 
 
 export default function AutocompleteSearch({ doctors }) {
-  const [query, setQuery] = useState("");
-  const [suggestions, setSuggestions] = useState([]);
   const router = useRouter();
+  const [inputValue, setInputValue] = useState(router.query.search || "");
 
-  useEffect(() => {
-    if (query.trim() === "") {
-      setSuggestions([]);
-      return;
-    }
-    const matches = doctors
-      .filter((doc) => doc.name.toLowerCase().includes(query.toLowerCase()))
-      .slice(0, 3);
-    setSuggestions(matches);
-  }, [query, doctors]);
-
-  const handleSelect = (name) => {
-    setQuery(name);
-    router.push({
-      pathname: "/",
-      query: { ...router.query, search: name },
-    });
-    setSuggestions([]);
+  const handleInputChange = (e) => {
+    setInputValue(e.target.value);
   };
 
-  const handleSubmit = (e) => {
+  const handleSearch = (e) => {
     e.preventDefault();
     router.push({
       pathname: "/",
-      query: { ...router.query, search: query },
+      query: { ...router.query, search: inputValue },
     });
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <input
-          data-testid="autocomplete-input"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search Symptoms, Doctors, Specialists, Clinics"
-          className="w-full p-2 border rounded"
-        />
-      </form>
-      {suggestions.length > 0 && (
-        <div className="border rounded mt-1 bg-white">
-          {suggestions.map((doc) => (
-            <div
-              key={doc.id}
-              data-testid="suggestion-item"
-              className="p-2 cursor-pointer hover:bg-gray-200"
-              onClick={() => handleSelect(doc.name)}
-            >
-              {doc.name}
-            </div>
-          ))}
+    <form onSubmit={handleSearch} className="relative w-full">
+      <div className="flex items-center bg-white rounded-full shadow-md overflow-hidden">
+        <div className="pl-4 text-gray-500">
+          <FiSearch size={20} />
         </div>
-      )}
-    </div>
+        <input
+          type="text"
+          value={inputValue}
+          onChange={handleInputChange}
+          placeholder="Search doctors..."
+          className="w-full p-3 rounded-full focus:outline-none bg-white"
+        />
+      </div>
+    </form>
   );
 }
