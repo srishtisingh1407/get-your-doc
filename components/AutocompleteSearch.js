@@ -1,37 +1,69 @@
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { useState } from "react";
-import { FiSearch } from "react-icons/fi"; 
+import { FaSearch } from "react-icons/fa";
 
 export default function AutocompleteSearch({ doctors }) {
+  const [input, setInput] = useState("");
+  const [suggestions, setSuggestions] = useState([]);
   const router = useRouter();
-  const [inputValue, setInputValue] = useState(router.query.search || "");
 
-  const handleInputChange = (e) => {
-    setInputValue(e.target.value);
-  };
+  useEffect(() => {
+    if (input.trim() === "") {
+      setSuggestions([]);
+    } else {
+      const matches = doctors
+        .filter((doc) =>
+          doc.name.toLowerCase().includes(input.toLowerCase())
+        )
+        .slice(0, 3);
+      setSuggestions(matches);
+    }
+  }, [input, doctors]);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
+  const handleSelect = (name) => {
+    setInput(name);
+    setSuggestions([]);
     router.push({
       pathname: "/",
-      query: { ...router.query, search: inputValue },
+      query: { ...router.query, search: name },
     });
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (input.trim() !== "") {
+      handleSelect(input.trim());
+    }
+  };
+
   return (
-    <form onSubmit={handleSearch} className="relative w-full">
-      <div className="flex items-center bg-white rounded-full shadow-md overflow-hidden">
-        <div className="pl-4 text-gray-500">
-          <FiSearch size={20} />
-        </div>
+    <form onSubmit={handleSubmit} className="relative">
+      <div className="flex items-center bg-white rounded-full px-4 py-2 shadow-md">
+        <FaSearch className="text-gray-400 mr-2" />
         <input
+          data-testid="autocomplete-input"
+          className="w-full bg-white outline-none"
           type="text"
-          value={inputValue}
-          onChange={handleInputChange}
-          placeholder="Search doctors..."
-          className="w-full p-3 rounded-full focus:outline-none bg-white"
+          value={input}
+          placeholder="Search doctors by name..."
+          onChange={(e) => setInput(e.target.value)}
         />
       </div>
+
+      {suggestions.length > 0 && (
+        <div className="absolute z-10 bg-white border rounded-lg shadow-md mt-1 w-full">
+          {suggestions.map((doc) => (
+            <div
+              key={doc.id}
+              data-testid="suggestion-item"
+              onClick={() => handleSelect(doc.name)}
+              className="px-4 py-2 cursor-pointer hover:bg-gray-100"
+            >
+              {doc.name}
+            </div>
+          ))}
+        </div>
+      )}
     </form>
   );
 }
